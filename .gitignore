@@ -40,3 +40,6 @@
 # debug information files
 *.dwo
 analyzer
+
+# IDE files
+.idea/
