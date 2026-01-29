@@ -1,6 +1,6 @@
-#ifndef PACKETANALYZER_LIBRARY_H
-#define PACKETANALYZER_LIBRARY_H
+#ifndef LIBRARY_H
+#define LIBRARY_H
 
-void hello();
+void printCurrentTime();
 
-#endif // PACKETANALYZER_LIBRARY_H
+#endif
