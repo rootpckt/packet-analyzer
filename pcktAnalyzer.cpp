@@ -29,7 +29,7 @@ int main() {           // Entry point of the program; returns int status code to
         // time(&raw_time);
         //
         // // Decode raw_time into a tm structure representing local time components
-        // tm *timeinfo = localtime(&raw_time);
+        // tm *timeinfo =z localtime(&raw_time);
         // // Format the tm structure as a human-readable string.
         // // Note: asctime uses a static buffer which may be overwritten by subsequent calls.
         // cout << asctime(timeinfo) << endl;
@@ -51,6 +51,44 @@ int main() {           // Entry point of the program; returns int status code to
     cout << "Device: " << alldevs->name << endl;
 
     pcap_freealldevs(alldevs);
+
+    const char* device = "ap1";
+
+    pcap_t* handle = pcap_open_live(
+    "en0",
+    65535,
+    1,
+    1000,
+    errbuf
+    );
+
+    if ( !handle ) {
+        cerr << "pcap_open_live failed: " << errbuf << endl;
+        return 1;
+    }
+
+    pcap_pkthdr* header;
+    const u_char* packet;
+
+    while (true) {
+        int res = pcap_next_ex(handle, &header, &packet);
+
+        if (res == 1) {
+            cout << "Captured bytes: " << header->caplen << endl;
+            cout << "Original length: " << header->len << endl;
+            break;
+        } else if (res == 0) {
+            cout << "Waiting for packet..." << endl;
+        } else if (res == -1) {
+            cerr << "Capture error: " << pcap_geterr(handle) << endl;
+            break;
+        } else if (res == -2) {
+            cout << "No more packets" << endl;
+            break;
+        }
+    }
+
+    pcap_close(handle);
 
     return 0;  // Return 0 signals successful program termination to the operating system
 }
