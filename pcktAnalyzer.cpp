@@ -2,6 +2,9 @@
 #include <ctime>       // Contains definitions for time-related functions and types (e.g., time_t, tm, localtime)
 #include <sys/time.h>  // Defines timeval struct and gettimeofday() for high-resolution time retrieval
 #include <pcap.h>      // Declares libpcap functions/types for packet capture (e.g., pcap_lookupdev)
+#include <netinet/ip.h> // this struct represents to IPv4 Header
+#include <netinet/if_ether.h> // for Ethernet header definitions
+#include <arpa/inet.h>
 
 using namespace std;   // Allows direct use of standard library names (cout, endl) without std:: prefix
 
@@ -76,6 +79,20 @@ int main() {           // Entry point of the program; returns int status code to
         if (res == 1) {
             cout << "Captured bytes: " << header->caplen << endl;
             cout << "Original length: " << header->len << endl;
+            // Parse Ethernet header
+            struct ether_header* eth = (struct ether_header*)packet;
+            if (ntohs(eth->ether_type) != ETHERTYPE_IP) {
+                cout << "Non-IPv4 packet" << endl;
+                break;
+            }
+            // Parse IPv4 header
+            struct ip* iphdr = (struct ip*)(packet + sizeof(struct ether_header));
+            char src_ip[INET_ADDRSTRLEN];
+            char dst_ip[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, &iphdr->ip_src, src_ip, INET_ADDRSTRLEN);
+            inet_ntop(AF_INET, &iphdr->ip_dst, dst_ip, INET_ADDRSTRLEN);
+            cout << "Source IP: " << src_ip << endl;
+            cout << "Destination IP: " << dst_ip << endl;
             break;
         } else if (res == 0) {
             cout << "Waiting for packet..." << endl;
@@ -88,7 +105,7 @@ int main() {           // Entry point of the program; returns int status code to
         }
     }
 
-    pcap_close(handle);
 
+    pcap_close(handle);
     return 0;  // Return 0 signals successful program termination to the operating system
 }
